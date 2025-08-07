@@ -67,7 +67,7 @@ Este proyecto te proporciona un conjunto de herramientas tipadas y reutilizables
 3. Copia y edita el archivo de ejemplo:
    ```bash
    cp .env.example .env
-   # Rellena META_TOKEN, PHONE_NUMBER_ID, WEBHOOK_SECRET...
+   # Rellena META_TOKEN, PHONE_NUMBER_ID, WEBHOOK_SECRET y TEST_PHONE...
    ```
 
 4. Para ejecutar un archivo de ejemplo en TypeScript (ver sección siguiente):
@@ -84,6 +84,12 @@ Este proyecto te proporciona un conjunto de herramientas tipadas y reutilizables
    ```bash
    npm test
    ```
+
+7. En la carpeta `scripts/` encontrarás utilidades para enviar mensajes de prueba.
+   Estos scripts usan la variable `TEST_PHONE` de tu `.env` para determinar el
+   destinatario. Mantener el número de prueba en una variable de entorno evita
+   compartirlo o subirlo por error al repositorio, una buena práctica para
+   futuros tests y scripts de validación del wrapper.
 
 ---
 
@@ -120,11 +126,15 @@ En `.env` debes definir:
 META_TOKEN=tu_permanent_token
 PHONE_NUMBER_ID=tu_phone_number_id
 WEBHOOK_SECRET=tu_webhook_verify_token
+TEST_PHONE=5213300000000
 ```
 
 - **META_TOKEN**: tu token permanente de la WhatsApp Cloud API.
 - **PHONE_NUMBER_ID**: el ID del número de WhatsApp configurado en Meta.
 - **WEBHOOK_SECRET**: el mismo valor que registraste al configurar tu webhook en Meta.
+- **TEST_PHONE**: número de WhatsApp de pruebas utilizado por los scripts de la
+  carpeta `scripts/`. Definirlo como variable de entorno evita exponerlo
+  accidentalmente en el repositorio.
 
 ### Generar el `WEBHOOK_SECRET`
 
