@@ -4,8 +4,8 @@
 
 A strongly-typed, lightweight toolkit to:
 
-- **Send** messages (text, interactive buttons, templates, images, documents)
-- **Receive & parse** inbound webhooks (text and button replies)
+- **Send** messages (text, interactive buttons, templates, images, documents, location)
+- **Receive & parse** inbound webhooks (text, button replies, **location**) 
 - **Secure** your endpoint with HMAC–SHA256 signature verification
 - **Handle** Cloud API errors in a clear, consistent way
 
@@ -18,6 +18,7 @@ A strongly-typed, lightweight toolkit to:
 - [Quick Start (2 terminals)](#quick-start-2-terminals)
 - [API Reference](#api-reference)
 - [Webhook & Security](#webhook--security)
+- [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 - [Folder Structure](#folder-structure)
 - [License](#license)
@@ -95,6 +96,12 @@ interface ButtonOption { id: string; title: string }
 ### `sendTemplate(to: string, templateName: string, templateLanguage: string, components?: TemplateComponents[]): Promise<void>`
 Sends a pre-approved template.
 
+### `sendLocationRequest(to: string, bodyText: string): Promise<void>`
+Sends an **interactive location request**. The user will see a native **Send location** button; upon sharing, you receive a `location` message via webhook.
+
+### `sendLocation(to: string, latitude: number, longitude: number, name?: string, address?: string): Promise<void>`
+Sends a **location pin** to the user.
+
 ### `startWebhookServer(
   port: number,
   onMessage?: (msg: Incoming) => Promise<void> | void,
@@ -105,12 +112,15 @@ Starts an Express server, verifies signatures by default, and calls `onMessage` 
 ```ts
 // Returned by parseIncoming and delivered to onMessage
 export type Incoming =
-  | { from: string; type: 'text';   payload: string }
-  | { from: string; type: 'button'; payload: string };
+  | { from: string; type: 'text';     payload: string }
+  | { from: string; type: 'button';   payload: string }
+  | { from: string; type: 'location'; payload: {
+      latitude: number; longitude: number; name?: string; address?: string; url?: string;
+    }};
 ```
 
 ### `parseIncoming(body: any): Incoming`
-Normalizes the WhatsApp payload. Supports `interactive.button_reply`, `interactive.list_reply`, and free text.
+Normalizes the WhatsApp payload. Supports `interactive.button_reply`, `interactive.list_reply`, **`location`**, and free text.
 
 ---
 
@@ -118,6 +128,40 @@ Normalizes the WhatsApp payload. Supports `interactive.button_reply`, `interacti
 - **GET** `/webhook` → verifies **WEBHOOK_SECRET** via `hub.verify_token`.
 - **POST** `/webhook` → verifies **APP_SECRET** HMAC against `X-Hub-Signature-256` using the **raw** request body.
 - For debugging Meta’s **Test** button (which may be unsigned), pass `{ allowUnsignedTests: true }` to `startWebhookServer` or set `ALLOW_UNSIGNED_TESTS=true`.
+
+---
+
+## Examples
+
+### Ask the user for their location and handle the reply
+```ts
+import { startWebhookServer } from '@alan/whatsapp-wrapper';
+import { sendText } from '@alan/whatsapp-wrapper';
+import { sendInteractive } from '@alan/whatsapp-wrapper';
+import { sendLocationRequest } from '@alan/whatsapp-wrapper';
+
+startWebhookServer(3000, async ({ from, type, payload }) => {
+  if (type === 'button' && payload === 'request_location') {
+    await sendLocationRequest(from, 'Please share your location 📍');
+  }
+  if (type === 'location') {
+    const { latitude, longitude, name, address } = payload;
+    await sendText(from, `✅ Location received:\nlat: ${latitude}\nlng: ${longitude}\n${name ?? ''}\n${address ?? ''}`);
+  }
+});
+
+// somewhere in your flow
+await sendInteractive(process.env.TEST_PHONE!, 'What would you like to do?', [
+  { id: 'request_location', title: 'Share my location' },
+]);
+```
+
+### Send a location to the user
+```ts
+import { sendLocation } from '@alan/whatsapp-wrapper';
+
+await sendLocation(process.env.TEST_PHONE!, 20.6736, -103.344, 'Our office', 'GDL, MX');
+```
 
 ---
 
@@ -133,6 +177,9 @@ Normalizes the WhatsApp payload. Supports `interactive.button_reply`, `interacti
 
 - **200 OK but message doesn’t arrive**
   - Free-text messages require an open 24h session. Use a **template** outside the session.
+
+- **Location doesn’t show**
+  - Make sure you’re using **WhatsApp on mobile**, not WhatsApp Web, when sharing a location.
 
 - **Validate connectivity**
   - `GET /health` locally and via your tunnel.
@@ -150,11 +197,11 @@ whatsapp-wrapper/
 │   ├── config/       # env & constants
 │   ├── http/         # Axios client & retry interceptor
 │   ├── types/        # TypeScript types
-│   ├── send/         # sendText, sendInteractive, sendTemplate, etc.
-│   ├── receive/      # webhookServer, parseIncoming
+│   ├── send/         # sendText, sendInteractive, sendTemplate, sendLocation, sendLocationRequest
+│   ├── receive/      # webhookServer, parseIncoming (text/button/location)
 │   ├── utils/        # verifySignature (APP_SECRET), formatPhone, logger
 │   └── errors/       # WhatsAppError
-├── scripts/          # quickStart, server debug scripts
+├── scripts/          # quickStart, server debug, tryShareLocation
 └── tests/            # Jest unit tests
 ```
 
