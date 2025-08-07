@@ -122,9 +122,27 @@ PHONE_NUMBER_ID=tu_phone_number_id
 WEBHOOK_SECRET=tu_webhook_verify_token
 ```
 
-- **META_TOKEN**: tu token permanente de la WhatsApp Cloud API.  
-- **PHONE_NUMBER_ID**: el ID del número de WhatsApp configurado en Meta.  
+- **META_TOKEN**: tu token permanente de la WhatsApp Cloud API.
+- **PHONE_NUMBER_ID**: el ID del número de WhatsApp configurado en Meta.
 - **WEBHOOK_SECRET**: el mismo valor que registraste al configurar tu webhook en Meta.
+
+### Generar el `WEBHOOK_SECRET`
+
+Para generar un `WEBHOOK_SECRET` seguro utilizando Node.js, puedes ejecutar el siguiente comando en tu terminal:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Esto te devolverá una cadena hexadecimal de 64 caracteres (256 bits), por ejemplo:
+
+`3f1a8e4c9d2b7f6e5a4c3b2d1f0e9a8c7b6d5e4f3a2b1c0d...`
+
+Copia esa cadena y pégala en tu archivo `.env` como valor de `WEBHOOK_SECRET`:
+
+```bash
+WEBHOOK_SECRET=3f1a8e4c9d2b7f6e5a4c3b2d1f0e9a8c7b6d5e4f3a2b1c0d
+```
 
 ---
 
