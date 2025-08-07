@@ -26,3 +26,8 @@ export interface TextMessage {
 export interface WebhookEntry {
   entry: Array<{ changes: Array<{ value: { messages?: any[] } }> }>;
 }
+
+export interface TemplateComponents {
+  type: 'header' | 'body' | 'footer' | 'button';
+  parameters: Array<{ type: string; [key: string]: any }>;
+}
