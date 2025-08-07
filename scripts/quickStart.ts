@@ -8,29 +8,29 @@ import {
   parseIncoming
 } from '../src/index';
 
-// 1. Arrancar servidor de webhook en el puerto 3000
+// 1. Start webhook server on port 3000
 startWebhookServer(3000);
 console.log('Webhook server started on port 3000');
 
-// 2. Enviar un mensaje de texto de prueba
+// 2. Send a test text message
 (async () => {
   try {
     const to = process.env.TEST_PHONE!;
-    console.log('Enviando mensaje de texto a:', to);
-    await sendText(to, '¡Hola mundo desde Quick Start!');
+    console.log('Sending text message to:', to);
+    await sendText(to, 'Hello world from Quick Start!');
 
-    // 3. Enviar botones interactivos de prueba
-    console.log('Enviando mensaje interactivo a:', to);
+    // 3. Send test interactive buttons
+    console.log('Sending interactive message to:', to);
     await sendInteractive(
       to,
-      '¿Qué deseas hacer?',
+      'What would you like to do?',
       [
-        { id: 'ver_catalogo', title: 'Ver catálogo' },
-        { id: 'contacto',    title: 'Contacto' }
+        { id: 'view_catalog', title: 'View catalog' },
+        { id: 'contact',    title: 'Contact' }
       ]
     );
-    console.log('Mensajes enviados con éxito');
+    console.log('Messages sent successfully');
   } catch (err: any) {
-    console.error('Error en Quick Start script:', err.response?.data ?? err.message);
+    console.error('Error in Quick Start script:', err.response?.data ?? err.message);
   }
 })();

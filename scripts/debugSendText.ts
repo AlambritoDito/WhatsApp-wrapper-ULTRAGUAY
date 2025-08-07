@@ -6,41 +6,41 @@ import axios from 'axios';
 import { GRAPH_API_URL } from '../src/config/metaConfig';
 
 (async () => {
-  // Lee el número de prueba desde .env
+  // Read the test number from .env
   const to = process.env.TEST_PHONE;
   if (!to) {
-    console.error('❌ ERROR: variable TEST_PHONE no definida en .env');
+    console.error('❌ ERROR: TEST_PHONE variable not defined in .env');
     process.exit(1);
   }
 
-  const message = '🛠️ Debug de sendText';
+  const message = '🛠️ sendText debug';
 
-  // Mostrar en consola las variables clave
-  console.log('––– VARIABLES DE ENTORNO –––');
+  // Show key variables in the console
+  console.log('––– ENVIRONMENT VARIABLES –––');
   console.log('META_TOKEN       :', process.env.META_TOKEN ? 'OK' : '⚠️ MISSING');
   console.log('PHONE_NUMBER_ID  :', process.env.PHONE_NUMBER_ID || '⚠️ MISSING');
   console.log('WEBHOOK_SECRET   :', process.env.WEBHOOK_SECRET ? 'OK' : '⚠️ MISSING');
   console.log('TEST_PHONE (to)  :', to);
   console.log('GRAPH_API_URL    :', GRAPH_API_URL);
-  console.log('Mensaje          :', message);
+  console.log('Message          :', message);
   console.log('–––––––––––––––––––––––––––––––\n');
 
-  // Primera llamada: usando tu wrapper
+  // First call: using your wrapper
   try {
     await sendText(to, message);
-    console.log('✅ sendText ejecutado con éxito');
+    console.log('✅ sendText executed successfully');
   } catch (err: any) {
     if (err.response) {
-      console.error('❌ Error del API (wrapper): HTTP', err.response.status);
-      console.error('❌ Response data           :', JSON.stringify(err.response.data, null, 2));
+      console.error('❌ API error (wrapper): HTTP', err.response.status);
+      console.error('❌ Response data       :', JSON.stringify(err.response.data, null, 2));
     } else {
-      console.error('❌ Error desconocido (wrapper):', err.message ?? err);
+      console.error('❌ Unknown error (wrapper):', err.message ?? err);
     }
     process.exit(1);
   }
 
-  // Segunda llamada: directa con Axios para aislar el wrapper
-  console.log('\nProbando llamada directa con Axios:');
+  // Second call: direct Axios request to isolate the wrapper
+  console.log('\nTesting direct call with Axios:');
   try {
     const payload = {
       messaging_product: 'whatsapp',
@@ -59,7 +59,7 @@ import { GRAPH_API_URL } from '../src/config/metaConfig';
       console.error('❌ Axios error: HTTP', err.response.status);
       console.error('❌ Response data:', JSON.stringify(err.response.data, null, 2));
     } else {
-      console.error('❌ Axios error desconocido:', err.message ?? err);
+      console.error('❌ Unknown Axios error:', err.message ?? err);
     }
     process.exit(1);
   }
