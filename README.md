@@ -70,9 +70,9 @@ Este proyecto te proporciona un conjunto de herramientas tipadas y reutilizables
    # Rellena META_TOKEN, PHONE_NUMBER_ID, WEBHOOK_SECRET...
    ```
 
-4. Para entorno de desarrollo (hot-reload):
+4. Para ejecutar un archivo de ejemplo en TypeScript (ver sección siguiente):
    ```bash
-   npm run dev
+   npx ts-node demo.ts
    ```
 
 5. Para compilar a JavaScript:
@@ -84,6 +84,31 @@ Este proyecto te proporciona un conjunto de herramientas tipadas y reutilizables
    ```bash
    npm test
    ```
+
+---
+
+## ▶️ Ejecutar un ejemplo
+
+1. Crea un archivo `demo.ts` en la raíz del repositorio:
+
+```ts
+import { sendText, startWebhookServer } from './src';
+
+async function main() {
+  await sendText('5213312345678', 'Hola desde el wrapper');
+  startWebhookServer(3000);
+}
+
+main();
+```
+
+2. Ejecuta el script anterior con:
+
+```bash
+npx ts-node demo.ts
+```
+
+Esto enviará un mensaje al número indicado y levantará un servidor de webhook en el puerto `3000`. Asegúrate de haber configurado previamente tu archivo `.env`.
 
 ---
 
