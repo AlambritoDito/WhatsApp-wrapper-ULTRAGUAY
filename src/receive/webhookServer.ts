@@ -5,7 +5,7 @@ import { parseIncoming } from './parseIncoming';
 
 export function startWebhookServer(port: number) {
   const app = express();
-  app.use(bodyParser.json({ verify: (req, res, buf) => (req.rawBody = buf) }));
+  app.use(bodyParser.json({ verify: (req, res, buf) => ((req as any).rawBody = buf) }));
 
   app.get('/webhook', (req, res) => {
     const mode = req.query['hub.mode'];
@@ -19,7 +19,6 @@ export function startWebhookServer(port: number) {
 
   app.post('/webhook', verifySignature, (req, res) => {
     const incoming = parseIncoming(req.body);
-    // TODO: emit event or callback
     console.log('Incoming:', incoming);
     res.sendStatus(200);
   });
