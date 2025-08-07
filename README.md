@@ -55,8 +55,8 @@ Este proyecto te proporciona un conjunto de herramientas tipadas y reutilizables
 
 1. Clona el repositorio:
    ```bash
-   git clone git@github.com:alanperez/whatsapp-wrapper.git
-   cd whatsapp-wrapper
+   git clone git@github.com:AlambritoDito/WhatsApp-wrapper-ULTRAGUAY.git
+   cd WhatsApp-wrapper-ULTRAGUAY
    ```
 
 2. Instala dependencias:
@@ -185,7 +185,7 @@ whatsapp-wrapper/
 
 1. Publica en un registry privado o usa la URL de Git:
    ```bash
-   npm install git+ssh://git@github.com/alanperez/whatsapp-wrapper.git
+   npm install git+ssh://git@github.com:AlambritoDito/WhatsApp-wrapper-ULTRAGUAY.git
    ```
 
 2. En tu código:
