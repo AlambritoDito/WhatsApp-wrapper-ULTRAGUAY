@@ -3,3 +3,5 @@ export { sendInteractive } from './send/sendInteractive';
 export { sendTemplate } from './send/sendTemplate';
 export { startWebhookServer } from './receive/webhookServer';
 export { parseIncoming } from './receive/parseIncoming';
+export * from './send/sendLocationRequest';
+export * from './send/sendLocation';
