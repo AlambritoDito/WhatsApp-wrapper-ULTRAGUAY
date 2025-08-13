@@ -2,9 +2,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { sendText } from '../src/send/sendText';
-import { sendInteractive } from '../src/send/sendInteractive';
 import { startWebhookServer } from '../src/receive/webhookServer';
+import { sendInteractive } from '../src/send/sendInteractive';
+import { sendText } from '../src/send/sendText';
 
 const PORT = Number(process.env.PORT || 3000);
 

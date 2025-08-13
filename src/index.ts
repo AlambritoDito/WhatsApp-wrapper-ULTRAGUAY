@@ -5,3 +5,7 @@ export { startWebhookServer } from './receive/webhookServer';
 export { parseIncoming } from './receive/parseIncoming';
 export * from './send/sendLocationRequest';
 export * from './send/sendLocation';
+export * from './whatsappWrapper';
+export * from './storage/StorageAdapter';
+export * from './storage/DiskStorageAdapter';
+export * from './storage/S3StorageAdapter';

@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
+
 import { GRAPH_API_URL, META_TOKEN } from '../config/metaConfig';
+
 import { setupRetryInterceptor } from './retryInterceptor';
 
 export const httpClient: AxiosInstance = axios.create({

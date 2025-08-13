@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { sendText } from '../src/send/sendText';
-import axios from 'axios';
 import { GRAPH_API_URL } from '../src/config/metaConfig';
+import { sendText } from '../src/send/sendText';
+
+import axios from 'axios';
 
 (async () => {
   // Read the test number from .env

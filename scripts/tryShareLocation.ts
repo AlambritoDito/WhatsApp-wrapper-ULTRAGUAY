@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
+
 dotenv.config();
 import { startWebhookServer } from '../src/receive/webhookServer';
-import { sendText } from '../src/send/sendText';
 import { sendInteractive } from '../src/send/sendInteractive';
 import { sendLocationRequest } from '../src/send/sendLocationRequest';
+import { sendText } from '../src/send/sendText';
 
 startWebhookServer(3000, async ({ from, type, payload }) => {
   console.log('onMessage:', { from, type, payload });
