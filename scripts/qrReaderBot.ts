@@ -3,7 +3,8 @@ dotenv.config();
 
 import express from 'express';
 import Jimp from 'jimp';
-// qrcode-reader has no types; import as any
+import jsQR from 'jsqr';
+// qrcode-reader has no types; import as any (fallback)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import QrCode from 'qrcode-reader';
@@ -12,11 +13,22 @@ import { WhatsappWrapper } from '../src/whatsappWrapper';
 import { sendText } from '../src/send/sendText';
 
 async function decodeQRFromBuffer(buf: Buffer): Promise<string | null> {
+  // Load image with Jimp and optionally rescale/contrast for better detection
   const img = await Jimp.read(buf);
-  return new Promise((resolve, reject) => {
+  const minWidth = 400;
+  if (img.bitmap.width < minWidth) {
+    img.resize(minWidth, Jimp.AUTO);
+  }
+  // Try jsQR first using RGBA pixel data
+  const { data, width, height } = img.bitmap;
+  const rgba = new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength);
+  const found = jsQR(rgba, width, height);
+  if (found?.data) return found.data;
+
+  // Fallback: qrcode-reader
+  return new Promise((resolve) => {
     const qr = new QrCode();
-    qr.callback = (err: any, value: any) => {
-      if (err) return resolve(null); // treat as no QR found
+    qr.callback = (_err: any, value: any) => {
       const result: string | undefined = value?.result ?? value?.data;
       resolve(result || null);
     };
@@ -85,4 +97,3 @@ app.listen(PORT, () => {
     });
   }
 });
-
