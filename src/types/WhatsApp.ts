@@ -20,6 +20,7 @@ export interface InteractiveMessage {
 export interface TextMessage {
   messaging_product: 'whatsapp';
   to: string;
+  type: 'text';
   text: { body: string };
 }
 

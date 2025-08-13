@@ -1,7 +1,35 @@
 import { parseIncoming } from '../src/receive/parseIncoming';
 
-test('parseIncoming extracts button payload', () => {
-  const mock = { entry: [{ changes: [{ value: { messages: [{ from: '521', button: { payload: 'ok' } }] } }] }] };
-  const result = parseIncoming(mock);
-  expect(result).toEqual({ from: '521', type: 'button', payload: 'ok' });
+test('parseIncoming maps image message', () => {
+  const body = {
+    entry: [
+      {
+        changes: [
+          {
+            value: {
+              messages: [
+                {
+                  id: 'wamid',
+                  from: '123',
+                  timestamp: '1700000000',
+                  type: 'image',
+                  image: { id: 'media123', mime_type: 'image/png', sha256: 'abc' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  };
+  const result = parseIncoming(body);
+  expect(result).toEqual([
+    {
+      from: '123',
+      timestamp: 1700000000,
+      wamid: 'wamid',
+      type: 'image',
+      image: { mediaId: 'media123', mimeType: 'image/png', sha256: 'abc' },
+    },
+  ]);
 });

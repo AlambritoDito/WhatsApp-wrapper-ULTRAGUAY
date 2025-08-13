@@ -163,6 +163,48 @@ import { sendLocation } from '@alan/whatsapp-wrapper';
 await sendLocation(process.env.TEST_PHONE!, 20.6736, -103.344, 'Our office', 'GDL, MX');
 ```
 
+### Receive & Save Images
+
+```ts
+import { WhatsappWrapper, DiskStorageAdapter, S3StorageAdapter } from '@alan/whatsapp-wrapper';
+
+const wa = new WhatsappWrapper({
+  accessToken: process.env.WABA_TOKEN!,
+  appSecret: process.env.APP_SECRET!,
+  storage: new DiskStorageAdapter('./uploads'),
+});
+
+wa.onImage(async (ctx) => {
+  console.log('Image from', ctx.from, 'id', ctx.image.mediaId);
+  const saved = await ctx.save();
+  console.log('Saved at', saved.location);
+});
+
+// Express
+app.post('/webhook', async (req: any, res) => {
+  await wa.handleWebhook({ headers: req.headers, rawBody: req.rawBody, json: req.body });
+  res.sendStatus(200);
+});
+
+// Fastify
+fastify.post('/webhook', async (req, res) => {
+  await wa.handleWebhook({ headers: req.headers as any, rawBody: (req as any).rawBody, json: req.body });
+  res.status(200).send();
+});
+
+// S3 adapter
+const s3Adapter = new S3StorageAdapter({ bucket: 'my-bucket', prefix: 'wa/' });
+const waS3 = new WhatsappWrapper({
+  accessToken: process.env.WABA_TOKEN!,
+  appSecret: process.env.APP_SECRET!,
+  storage: s3Adapter,
+});
+
+```
+
+> Security tip: Always validate the `X-Hub-Signature-256` header before trusting the payload. If signature verification fails, do not download or persist the media.
+
+
 ---
 
 ## Troubleshooting
