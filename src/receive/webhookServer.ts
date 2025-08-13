@@ -2,9 +2,9 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { verifySignature } from '../utils/verifySignature';
-import { parseIncoming, type Incoming } from './parseIncoming';
+import { parseIncoming, type InboundMessage } from './parseIncoming';
 
-type Handler = (msg: Incoming) => Promise<void> | void;
+type Handler = (msg: InboundMessage) => Promise<void> | void;
 
 export function startWebhookServer(
   port: number,
@@ -40,9 +40,11 @@ export function startWebhookServer(
   const baseHandler = async (req: express.Request, res: express.Response) => {
     try {
       console.log('Incoming JSON:', JSON.stringify(req.body, null, 2));
-      const parsed = parseIncoming(req.body); // tipo: Incoming
+      const parsed = parseIncoming(req.body);
       console.log('Parsed:', parsed);
-      if (onMessage) await onMessage(parsed);
+      if (onMessage) {
+        for (const msg of parsed) await onMessage(msg);
+      }
       res.sendStatus(200);
     } catch (e: any) {
       console.error('Handler error:', e.message ?? e);

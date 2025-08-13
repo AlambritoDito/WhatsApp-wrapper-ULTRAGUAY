@@ -1,58 +1,98 @@
-export type Incoming =
-  | { from: string; type: 'text';     payload: string }
-  | { from: string; type: 'button';   payload: string }
-  | {
-      from: string; type: 'location';
-      payload: {
-        latitude: number;
-        longitude: number;
-        name?: string;
-        address?: string;
-        url?: string;
-      }
-    };
+export interface InboundBaseMessage {
+  from: string;
+  timestamp: number;
+  wamid: string;
+}
 
-export function parseIncoming(body: any): Incoming {
-  const entry  = body?.entry?.[0];
-  const change = entry?.changes?.[0];
-  const value  = change?.value;
-  const msg    = value?.messages?.[0];
+export interface InboundTextMessage extends InboundBaseMessage {
+  type: 'text';
+  text: string;
+}
 
-  const from = String(msg?.from ?? '');
+export interface InboundButtonReplyMessage extends InboundBaseMessage {
+  type: 'button';
+  buttonId: string;
+}
 
-  // 1) Interactive (button/list reply)
+export interface InboundLocationMessage extends InboundBaseMessage {
+  type: 'location';
+  location: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+    address?: string;
+    url?: string;
+  };
+}
+
+export interface InboundImageMessage extends InboundBaseMessage {
+  type: 'image';
+  image: {
+    mediaId: string;
+    mimeType: string;
+    sha256?: string;
+  };
+}
+
+export type InboundMessage =
+  | InboundTextMessage
+  | InboundButtonReplyMessage
+  | InboundLocationMessage
+  | InboundImageMessage;
+
+function parseSingle(msg: any): InboundMessage {
+  const base: InboundBaseMessage = {
+    from: String(msg?.from ?? ''),
+    timestamp: Number(msg?.timestamp ?? 0),
+    wamid: String(msg?.id ?? ''),
+  };
+
   if (msg?.type === 'interactive') {
     const i = msg.interactive;
     if (i?.type === 'button_reply' && i?.button_reply?.id) {
-      return { from, type: 'button', payload: String(i.button_reply.id) };
+      return { ...base, type: 'button', buttonId: String(i.button_reply.id) };
     }
     if (i?.type === 'list_reply' && i?.list_reply?.id) {
-      return { from, type: 'button', payload: String(i.list_reply.id) };
+      return { ...base, type: 'button', buttonId: String(i.list_reply.id) };
     }
   }
 
-  // 2) Ubicación (cuando el usuario comparte)
   if (msg?.type === 'location' && msg.location) {
     const loc = msg.location;
     return {
-      from,
+      ...base,
       type: 'location',
-      payload: {
+      location: {
         latitude: Number(loc.latitude),
         longitude: Number(loc.longitude),
         name: loc.name,
         address: loc.address,
-        url:     (loc as any).url, // algunos proveedores lo incluyen
+        url: (loc as any).url,
       },
     };
   }
 
-  // 3) Fallback antiguo (algunos payloads legacy)
-  if (msg?.button?.payload) {
-    return { from, type: 'button', payload: String(msg.button.payload) };
+  if (msg?.type === 'image' && msg.image) {
+    return {
+      ...base,
+      type: 'image',
+      image: {
+        mediaId: String(msg.image.id),
+        mimeType: String(msg.image.mime_type ?? 'image/jpeg'),
+        sha256: msg.image.sha256,
+      },
+    };
   }
 
-  // 4) Texto libre
-  const text = String(msg?.text?.body ?? '');
-  return { from, type: 'text', payload: text };
+  if (msg?.button?.payload) {
+    return { ...base, type: 'button', buttonId: String(msg.button.payload) };
+  }
+
+  return { ...base, type: 'text', text: String(msg?.text?.body ?? '') };
+}
+
+export function parseIncoming(body: any): InboundMessage[] {
+  const messages: any[] =
+    body?.entry?.[0]?.changes?.[0]?.value?.messages ?? [];
+  return messages.map(parseSingle);
 }
