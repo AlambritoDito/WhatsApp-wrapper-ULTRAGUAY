@@ -19,6 +19,7 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "ts-node-dev --respawn src/index.ts",
     "test": "jest",
+    "image-echo-bot": "ts-node-dev --respawn scripts/imageEchoBot.ts",
     "prepare": "npm run build"
   },
   "engines": {

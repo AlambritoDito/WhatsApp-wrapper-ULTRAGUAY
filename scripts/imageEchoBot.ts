@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 import express from 'express';
 
-import { sendText } from '../send/sendText';
-import { httpClient } from '../http/httpClient';
-import { WhatsappWrapper } from '../whatsappWrapper';
+import { sendText } from '../src/send/sendText';
+import { httpClient } from '../src/http/httpClient';
+import { WhatsappWrapper } from '../src/whatsappWrapper';
 
 dotenv.config();
 
@@ -57,8 +57,13 @@ app.post('/webhook', async (req: any, res) => {
 const PORT = Number(process.env.PORT || 3000);
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
-  const to = process.env.TO_PHONE;
+  const to = process.env.TEST_PHONE;
   if (to) {
-    sendText(to, 'Send me an image and I will send it back!');
+    sendText(to, 'Send me an image and I will send it back!').catch((err: any) => {
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      console.error('Failed to send initial text', { status, data, message: err?.message });
+      console.error('Check META_TOKEN and PHONE_NUMBER_ID in your .env');
+    });
   }
 });
