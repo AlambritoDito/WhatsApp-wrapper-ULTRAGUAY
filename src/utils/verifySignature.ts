@@ -1,5 +1,7 @@
 import crypto from 'crypto';
+
 import { Request, Response, NextFunction } from 'express';
+
 import { APP_SECRET } from '../config/metaConfig';
 
 export function verifySignature(req: Request, res: Response, next: NextFunction) {

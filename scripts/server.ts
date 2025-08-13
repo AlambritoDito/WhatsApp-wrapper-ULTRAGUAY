@@ -4,9 +4,10 @@ dotenv.config();
 
 import express from 'express';
 import bodyParser from 'body-parser';
-import { verifySignature } from '../src/utils/verifySignature';
+
 import { parseIncoming } from '../src/receive/parseIncoming';
 import { sendText } from '../src/send/sendText';
+import { verifySignature } from '../src/utils/verifySignature';
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);

@@ -1,5 +1,5 @@
-import { sendText } from '../src/send/sendText';
 import { httpClient } from '../src/http/httpClient';
+import { sendText } from '../src/send/sendText';
 jest.mock('../src/http/httpClient');
 
 test('sendText posts correct payload', async () => {

@@ -1,7 +1,9 @@
 // src/receive/webhookServer.ts
-import express from 'express';
 import bodyParser from 'body-parser';
+import express from 'express';
+
 import { verifySignature } from '../utils/verifySignature';
+
 import { parseIncoming, type Incoming } from './parseIncoming';
 
 type Handler = (msg: Incoming) => Promise<void> | void;
