@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
-import { setupRetryInterceptor } from '../http/retryInterceptor';
+
 import { WhatsAppError } from '../errors/WhatsAppError';
+import { setupRetryInterceptor } from '../http/retryInterceptor';
 
 export class MediaClient {
   private readonly client: AxiosInstance;

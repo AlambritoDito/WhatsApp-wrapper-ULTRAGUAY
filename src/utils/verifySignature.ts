@@ -10,13 +10,19 @@ export function verifyPayloadSignature(rawBody: Buffer | string, signature: stri
   return expected === signature;
 }
 
-export function verifySignature(req: Request, res: Response, next: NextFunction) {
-  const signature = req.headers['x-hub-signature-256'] as string | undefined;
-  if (!signature) return res.status(401).send('Missing signature');
+export function createSignatureVerifier(appSecret: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const signature = req.headers['x-hub-signature-256'] as string | undefined;
+    if (!signature) return res.status(401).send('Missing signature');
 
-  const valid = verifyPayloadSignature((req as any).rawBody, signature, APP_SECRET);
-  if (!valid) {
-    return res.status(401).send('Invalid signature');
-  }
-  next();
+    const valid = verifyPayloadSignature((req as any).rawBody, signature, appSecret);
+    if (!valid) {
+      return res.status(401).send('Invalid signature');
+    }
+    next();
+  };
+}
+
+export function verifySignature(req: Request, res: Response, next: NextFunction) {
+  return createSignatureVerifier(APP_SECRET)(req, res, next);
 }

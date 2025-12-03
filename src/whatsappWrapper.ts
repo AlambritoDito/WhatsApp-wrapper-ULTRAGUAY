@@ -1,7 +1,7 @@
-import { MediaClient } from './media/MediaClient';
-import { StorageAdapter } from './storage/StorageAdapter';
 import { StorageNotConfiguredError } from './errors/StorageNotConfiguredError';
+import { MediaClient } from './media/MediaClient';
 import { parseIncoming, InboundImageMessage } from './receive/parseIncoming';
+import { StorageAdapter } from './storage/StorageAdapter';
 import { verifyPayloadSignature } from './utils/verifySignature';
 
 export type OnImageCallback = (ctx: {

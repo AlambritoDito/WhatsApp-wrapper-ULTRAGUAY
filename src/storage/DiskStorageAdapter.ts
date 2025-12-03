@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+
 import { StorageAdapter } from './StorageAdapter';
 
 function extFromMime(mime: string): string {

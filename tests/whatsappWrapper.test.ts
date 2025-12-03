@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 import { WhatsappWrapper } from '../src/whatsappWrapper';
 
 test('handleWebhook triggers image callback without crashing on multiple messages', async () => {

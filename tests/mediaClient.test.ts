@@ -1,4 +1,5 @@
 import nock from 'nock';
+
 import { MediaClient } from '../src/media/MediaClient';
 
 describe('MediaClient', () => {

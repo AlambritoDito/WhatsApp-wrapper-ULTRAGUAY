@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import express from 'express';
 
-import { sendText } from '../src/send/sendText';
 import { httpClient } from '../src/http/httpClient';
+import { sendText } from '../src/send/sendText';
 import { WhatsappWrapper } from '../src/whatsappWrapper';
 
 dotenv.config();

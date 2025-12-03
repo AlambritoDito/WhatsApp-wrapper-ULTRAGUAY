@@ -1,5 +1,5 @@
-import express from 'express';
 import { WhatsappWrapper, DiskStorageAdapter } from '@alan/whatsapp-wrapper';
+import express from 'express';
 
 const app = express();
 app.use(express.json({ verify: (req: any, _res, buf) => { (req as any).rawBody = buf; } }));

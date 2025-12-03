@@ -9,8 +9,8 @@ import jsQR from 'jsqr';
 // @ts-ignore
 import QrCode from 'qrcode-reader';
 
-import { WhatsappWrapper } from '../src/whatsappWrapper';
 import { sendText } from '../src/send/sendText';
+import { WhatsappWrapper } from '../src/whatsappWrapper';
 
 async function decodeQRFromBuffer(buf: Buffer): Promise<string | null> {
   // Load image with Jimp and optionally rescale/contrast for better detection

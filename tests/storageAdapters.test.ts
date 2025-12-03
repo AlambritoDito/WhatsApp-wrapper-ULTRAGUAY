@@ -1,10 +1,12 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { DiskStorageAdapter } from '../src/storage/DiskStorageAdapter';
-import { S3StorageAdapter } from '../src/storage/S3StorageAdapter';
+
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
+
+import { DiskStorageAdapter } from '../src/storage/DiskStorageAdapter';
+import { S3StorageAdapter } from '../src/storage/S3StorageAdapter';
 
 describe('StorageAdapters', () => {
   test('DiskStorageAdapter writes file', async () => {
