@@ -1,6 +1,11 @@
 # whatsapp-wrapper
 
+
 **Modular TypeScript wrapper for Meta’s WhatsApp Cloud API**
+
+[![NPM Version](https://img.shields.io/npm/v/@brito/whatsapp-wrapper-ultra)](https://www.npmjs.com/package/@brito/whatsapp-wrapper-ultra)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY/actions/workflows/ci.yml/badge.svg)](https://github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY/actions)
 
 A strongly-typed, lightweight toolkit to:
 

@@ -34,14 +34,15 @@
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
     "image-echo-bot": "ts-node-dev --respawn scripts/imageEchoBot.ts",
     "qr-reader-bot": "ts-node-dev --respawn scripts/qrReaderBot.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint && npm run build"
   },
   "engines": {
     "node": ">=16"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY.git"
+    "url": "git+https://github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY.git"
   },
   "bugs": {
     "url": "https://github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY/issues"

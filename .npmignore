@@ -1,0 +1,38 @@
+# Source and Tests
+src/
+tests/
+tsconfig.json
+tsconfig.build.json
+jest.config.js
+eslint.config.cjs
+
+# Editor Config
+.vscode/
+.idea/
+.editorconfig
+.prettierrc.json
+.prettierignore
+
+# Dependencies and Logs
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# GitHub
+.github/
+.git/
+.gitignore
+
+# Documentation (Optional: keep README/LICENSE/CHANGELOG)
+AGENTS.md
+DOCUMENTATION.md
+examples/
+scripts/
+
+# Environment
+.env
+.env.example
+.DS_Store
