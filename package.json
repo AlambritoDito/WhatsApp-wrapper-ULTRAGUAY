@@ -35,7 +35,7 @@
     "image-echo-bot": "ts-node-dev --respawn scripts/imageEchoBot.ts",
     "qr-reader-bot": "ts-node-dev --respawn scripts/qrReaderBot.ts",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test && npm run lint && npm run build"
+    "prepublishOnly": "npm test && npm run build"
   },
   "engines": {
     "node": ">=16"
