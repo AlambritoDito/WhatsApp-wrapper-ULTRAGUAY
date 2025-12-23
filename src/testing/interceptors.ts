@@ -1,4 +1,3 @@
-import { Utils } from 'handlebars';
 import { httpClient } from '../http/httpClient';
 import { MockAdapter } from './mockAdapter';
 

@@ -2,7 +2,7 @@
 import bodyParser from 'body-parser';
 import express from 'express';
 
-import { verifySignature, createSignatureVerifier } from '../utils/verifySignature';
+import { createSignatureVerifier } from '../utils/verifySignature';
 
 import { parseIncoming, type InboundMessage } from './parseIncoming';
 
