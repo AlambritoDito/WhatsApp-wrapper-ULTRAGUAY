@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-23
+
+### Added
+- **Testing Submodule**: Added `testing` submodule with `enableMocking` and `createConsole` for local REPL development without real HTTP requests.
+- **Modular Submodules**: Exposed `webhook` and `storage` as dedicated submodules (e.g., `.../webhook`, `.../storage`) for better tree-shaking and optional dependencies.
+- **MIGRATION.md**: Added migration guide for new features.
+
+### Changed
+- **Modularization**: Refactored internal structure to support submodules.
+- **CI/CD**: Dropped Node 16.x support in CI to support ESLint 9.x.
+
+### Fixed
+- **Circular Dependency**: Removed self-reference in `package.json` that caused install issues.
+- **Linting**: Fixed various linting warnings and unused variables.
+
 ## [1.1.1] - 2025-12-18
 
 ### Fixed
