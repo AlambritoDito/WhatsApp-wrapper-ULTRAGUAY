@@ -34,11 +34,20 @@ export interface InboundImageMessage extends InboundBaseMessage {
   };
 }
 
+export interface InboundFlowMessage extends InboundBaseMessage {
+  type: 'flow_response';
+  response: {
+    json: Record<string, any>;
+    body: string;
+  };
+}
+
 export type InboundMessage =
   | InboundTextMessage
   | InboundButtonReplyMessage
   | InboundLocationMessage
-  | InboundImageMessage;
+  | InboundImageMessage
+  | InboundFlowMessage;
 
 function parseSingle(msg: any): InboundMessage {
   const base: InboundBaseMessage = {
@@ -49,6 +58,23 @@ function parseSingle(msg: any): InboundMessage {
 
   if (msg?.type === 'interactive') {
     const i = msg.interactive;
+    if (i?.type === 'nfm_reply' && i?.nfm_reply) {
+      const respJsonStr = i.nfm_reply.response_json || '{}';
+      let json = {};
+      try {
+        json = JSON.parse(respJsonStr);
+      } catch (err) {
+        // ignore invalid json
+      }
+      return {
+        ...base,
+        type: 'flow_response',
+        response: {
+          json,
+          body: i.nfm_reply.body || '',
+        },
+      };
+    }
     if (i?.type === 'button_reply' && i?.button_reply?.id) {
       return { ...base, type: 'button', buttonId: String(i.button_reply.id) };
     }
