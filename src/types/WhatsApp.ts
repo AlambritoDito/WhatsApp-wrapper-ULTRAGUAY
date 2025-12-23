@@ -10,10 +10,19 @@ export interface InteractiveMessage {
   messaging_product: 'whatsapp';
   to: string;
   type: 'interactive';
-  interactive: {
+  interactive:
+  | {
     type: 'button';
     body: { text: string };
     action: { buttons: Array<{ type: 'reply'; reply: ButtonOption }> };
+  }
+  | {
+    type: 'flow';
+    body: { text: string };
+    action: {
+      name: 'flow';
+      parameters: any;
+    };
   };
 }
 
@@ -30,5 +39,5 @@ export interface WebhookEntry {
 
 export interface TemplateComponents {
   type: 'header' | 'body' | 'footer' | 'button';
-  parameters: Array<{ type: string; [key: string]: any }>;
+  parameters: Array<{ type: string;[key: string]: any }>;
 }
