@@ -6,11 +6,17 @@ function extFromMime(mime: string): string {
   return mime === 'image/png' ? 'png' : 'jpg';
 }
 
+export interface S3StorageAdapterOptions {
+  bucket: string;
+  prefix?: string;
+  s3?: S3ClientConfig;
+}
+
 export class S3StorageAdapter implements StorageAdapter {
   private readonly client: S3Client;
   private readonly bucket: string;
   private readonly prefix?: string;
-  constructor(cfg: { bucket: string; prefix?: string; s3?: S3ClientConfig }) {
+  constructor(cfg: S3StorageAdapterOptions) {
     this.bucket = cfg.bucket;
     this.prefix = cfg.prefix;
     this.client = new S3Client(cfg.s3 || {});

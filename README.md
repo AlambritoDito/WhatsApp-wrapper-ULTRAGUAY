@@ -20,6 +20,8 @@ A strongly-typed, lightweight toolkit to:
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Modular Usage](#modular-usage-new)
+- [Testing Mode](#testing-mode-new)
 - [Quick Start (2 terminals)](#quick-start-2-terminals)
 - [API Reference](#api-reference)
 - [Webhook & Security](#webhook--security)
@@ -63,6 +65,25 @@ TEST_PHONE=5213300000000                 # your test number (E.164)
 > **Important:**
 > - **APP_SECRET** (from *Meta → Settings → Basic*) is the HMAC key for validating the `X-Hub-Signature-256` on **POST** `/webhook`.
 > - **WEBHOOK_SECRET** is only the **verify token** used during **GET** subscription.
+
+
+---
+
+## Modular Usage (New)
+For lighter bundles, import only what you need:
+```typescript
+import { startWebhookServer } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/webhook';
+import { S3StorageAdapter } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/storage';
+```
+See [MIGRATION.md](./MIGRATION.md) for details.
+
+## Testing Mode (New)
+Test your bot locally with an interactive REPL:
+```typescript
+import { enableMocking, createConsole } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/testing';
+enableMocking();
+createConsole({ onInput: (text) => processInput(text) }).start();
+```
 
 ---
 
