@@ -1,5 +1,5 @@
-import { createHttpClient } from '../src/http';
 import { WhatsAppError } from '../src/errors';
+import { createHttpClient } from '../src/http';
 
 const originalFetch = globalThis.fetch;
 
@@ -83,8 +83,8 @@ describe('HTTP client retry logic', () => {
 
   it('sets Authorization header', async () => {
     let capturedHeaders: Headers | undefined;
-    globalThis.fetch = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
-      capturedHeaders = init?.headers as Headers;
+    globalThis.fetch = jest.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => {
+      capturedHeaders = _init?.headers as Headers;
       return {
         ok: true,
         status: 200,
@@ -99,7 +99,7 @@ describe('HTTP client retry logic', () => {
   });
 
   it('handles timeout (AbortError)', async () => {
-    globalThis.fetch = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = jest.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => {
       // Simulate abort
       const error = new DOMException('The operation was aborted', 'AbortError');
       throw error;

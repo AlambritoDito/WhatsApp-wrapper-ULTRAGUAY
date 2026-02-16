@@ -1,5 +1,5 @@
-import { MockWhatsAppClient, createMockWebhookPayload } from '../src/testing/index';
 import { parseIncoming, parseStatuses } from '../src/parse-incoming';
+import { MockWhatsAppClient, createMockWebhookPayload } from '../src/testing/index';
 
 describe('MockWhatsAppClient', () => {
   it('records sendText calls and returns wamid', async () => {

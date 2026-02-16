@@ -5,11 +5,11 @@
  * @module client
  */
 
-import { EventEmitter } from 'events';
 import crypto from 'crypto';
+import { EventEmitter } from 'events';
 
-import { createHttpClient, type HttpClient } from './http';
 import { WhatsAppError, StorageNotConfiguredError } from './errors';
+import { createHttpClient, type HttpClient } from './http';
 import { parseIncoming, parseStatuses } from './parse-incoming';
 import type {
   WhatsAppClientConfig,
@@ -28,11 +28,8 @@ import type {
   SendInteractiveOptions,
   UploadMediaResult,
   MediaUrlResult,
-  InboundMessage,
-  StatusUpdate,
   WebhookPayload,
   WhatsAppEvents,
-  CommonSendOptions,
 } from './types';
 
 const DEFAULT_API_VERSION = 'v21.0';
@@ -138,11 +135,6 @@ export class WhatsAppClient {
     const wamid = res?.messages?.[0]?.id;
     if (!wamid) throw new WhatsAppError('No wamid in response', 0, res);
     return { wamid };
-  }
-
-  /** Build the context block for reply‑to. */
-  private static contextBlock(opts?: CommonSendOptions): Record<string, unknown> | undefined {
-    return opts?.replyTo ? { message_id: opts.replyTo } : undefined;
   }
 
   // -----------------------------------------------------------------------

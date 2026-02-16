@@ -255,7 +255,7 @@ export type InteractiveHeader =
   | { type: 'video'; video: MediaRef }
   | { type: 'document'; document: MediaRef };
 
-export interface SendInteractiveOptions extends CommonSendOptions {}
+export type SendInteractiveOptions = CommonSendOptions;
 
 // ---------------------------------------------------------------------------
 // Media management

@@ -32,7 +32,7 @@ function extFromMime(mime: string): string {
 
 /** Sanitise a filename — keep only word chars, dots, and hyphens. */
 function sanitizeName(name: string): string {
-  return name.replace(/[^\w.\-]/g, '_');
+  return name.replace(/[^\w.-]/g, '_');
 }
 
 /**

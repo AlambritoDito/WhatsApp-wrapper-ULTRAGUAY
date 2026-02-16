@@ -9,6 +9,8 @@
  */
 
 import crypto from 'crypto';
+
+import { parseIncoming, parseStatuses } from '../parse-incoming';
 import type { WebhookPayload, InboundMessage, StatusUpdate } from '../types';
 
 export { parseIncoming, parseStatuses } from '../parse-incoming';
@@ -59,8 +61,6 @@ export interface ExpressMiddlewareOptions {
  * ```
  */
 export function createExpressMiddleware(opts: ExpressMiddlewareOptions): (req: ExpressLikeRequest, res: ExpressLikeResponse) => void {
-  const { parseIncoming: parse, parseStatuses: parseS } = require('../parse-incoming') as typeof import('../parse-incoming');
-
   return (req: ExpressLikeRequest, res: ExpressLikeResponse) => {
     // GET — verification challenge
     if (req.method === 'GET') {
@@ -100,8 +100,8 @@ export function createExpressMiddleware(opts: ExpressMiddlewareOptions): (req: E
         ? JSON.parse(typeof rawBody === 'string' ? rawBody : rawBody.toString('utf-8'))
         : req.body as WebhookPayload;
 
-      const messages = parse(json);
-      const statuses = parseS(json);
+      const messages = parseIncoming(json);
+      const statuses = parseStatuses(json);
 
       for (const msg of messages) {
         Promise.resolve(opts.onMessage?.(msg)).catch((e: unknown) =>
