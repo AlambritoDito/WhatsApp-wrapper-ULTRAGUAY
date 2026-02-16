@@ -1,61 +1,113 @@
-# Migration Guide & New Features
+# Migration Guide: v1 → v2
 
-## Modular Submodules `(v1.2.0+)`
+## Overview
 
-To reduce bundle size and external dependencies, we have modularized the package. While the main import is still backward compatible, we recommend importing specific modules if you only need certain functionality.
+v2 is a complete rewrite. The core philosophy changed from "global singleton with standalone functions" to "instanciable client class with comprehensive API coverage".
 
-### Webhook Server
-If you are using the built-in Express webhook server:
+## Breaking Changes
 
-**Old:**
+### 1. Configuration
+
+**v1:**
 ```typescript
-import { startWebhookServer } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay';
+// Required .env file with META_TOKEN, PHONE_NUMBER_ID, etc.
+import { sendText } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay';
+await sendText('123', 'Hello');
 ```
 
-**New (Recommended):**
+**v2:**
 ```typescript
-import { startWebhookServer } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/webhook';
-```
-*Note: This submodule requires `express` and `body-parser`.*
+import { WhatsAppClient } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay';
 
-### Storage Adapters
-If you are using `DiskStorageAdapter` or `S3StorageAdapter`:
+const client = new WhatsAppClient({
+  accessToken: process.env.META_TOKEN!,
+  phoneNumberId: process.env.PHONE_NUMBER_ID!,
+});
 
-**Old:**
-```typescript
-import { DiskStorageAdapter, S3StorageAdapter } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay';
+await client.sendText('123', 'Hello');
 ```
 
-**New (Recommended):**
+### 2. Send Methods Return `{ wamid: string }`
+
+**v1:** `sendText()` returned `void`.  
+**v2:** All send methods return `Promise<{ wamid: string }>`.
+
+### 3. Interactive Messages
+
+**v1:**
 ```typescript
-import { DiskStorageAdapter } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/storage';
-// or
-import { S3StorageAdapter } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/storage';
-```
-*Note: `S3StorageAdapter` requires `@aws-sdk/client-s3`.*
-
----
-
-## Testing Mode
-
-You can now test your bot logic locally without sending real HTTP requests to Meta.
-
-### Enable Mocking
-In your test script or local development entry point:
-
-```typescript
-import { enableMocking, createConsole } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/testing';
-
-// 1. Enable Mocking (intercepts HTTP requests)
-enableMocking();
-
-// 2. Start the interactive console
-createConsole({
-  onInput: async (text) => {
-    // Inject text into your bot logic here
-    // e.g., call your handleMessage function
-  }
-}).start();
+import { sendInteractive } from '...';
+await sendInteractive('123', 'Choose:', [{ id: 'a', title: 'A' }]);
 ```
 
-The console will intercept outgoing messages and display them in your terminal.
+**v2:**
+```typescript
+await client.sendInteractive('123', {
+  type: 'button',
+  body: { text: 'Choose:' },
+  action: {
+    buttons: [{ type: 'reply', reply: { id: 'a', title: 'A' } }],
+  },
+});
+```
+
+### 4. Webhook Handling
+
+**v1:**
+```typescript
+import { WhatsappWrapper } from '...';
+const wrapper = new WhatsappWrapper({ accessToken: '...', appSecret: '...' });
+wrapper.onImage((ctx) => { /* only images */ });
+await wrapper.handleWebhook({ headers, rawBody, json });
+```
+
+**v2:**
+```typescript
+const client = new WhatsAppClient({ accessToken: '...', phoneNumberId: '...', appSecret: '...' });
+client.on('message:image', (msg) => { /* typed image message */ });
+client.on('message:text', (msg) => { /* typed text message */ });
+client.on('message', (msg) => { /* any message type */ });
+client.handleWebhook({ rawBody, signature, body: parsedJson });
+```
+
+### 5. parseIncoming Returns More Types
+
+**v1:** Returned `text | button | location | image | flow_response`.  
+**v2:** Returns 15 types including `video`, `audio`, `document`, `sticker`, `contacts`, `interactive_reply`, `reaction`, `flow_reply`, `order`, `system`, `referral`, `unsupported`.
+
+Also, `button` is now `interactive_reply` with a `subType` field.
+
+### 6. Imports Changed
+
+**v1:**
+```typescript
+import { sendText, sendInteractive, parseIncoming, startWebhookServer } from '...';
+```
+
+**v2:**
+```typescript
+// Main
+import { WhatsAppClient, parseIncoming } from '...';
+
+// Webhook subpath
+import { createExpressMiddleware, verifyWebhookSignature } from '.../webhook';
+
+// Storage subpath
+import { DiskStorageAdapter, S3StorageAdapter } from '.../storage';
+
+// Testing subpath
+import { MockWhatsAppClient, createMockWebhookPayload } from '.../testing';
+```
+
+### 7. Removed Dependencies
+
+These are no longer included and should be removed from your project if only used via this library:
+- `axios` → native `fetch`
+- `dotenv` → pass config directly
+- `express` → optional peer dep (only if using `createExpressMiddleware`)
+- `jimp`, `jsqr`, `qrcode-reader` → removed entirely
+
+### 8. Node.js Version
+
+**v1:** Node ≥ 16  
+**v2:** Node ≥ 18 (required for native `fetch` and `FormData`)
