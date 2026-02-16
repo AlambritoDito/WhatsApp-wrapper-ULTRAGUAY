@@ -1,28 +1,37 @@
+/**
+ * HMAC-SHA256 signature verification for WhatsApp webhook payloads.
+ */
+
 import crypto from 'crypto';
 
-import { Request, Response, NextFunction } from 'express';
+/**
+ * Verify a webhook payload signature against an app secret.
+ *
+ * @param rawBody - The raw request body as a Buffer or string.
+ * @param signature - The `x-hub-signature-256` header value (e.g., 'sha256=abc123...').
+ * @param appSecret - The Meta app secret used to compute the expected signature.
+ * @returns `true` if the signature is valid, `false` otherwise.
+ */
+export function verifyPayloadSignature(
+  rawBody: Buffer | string,
+  signature: string,
+  appSecret: string,
+): boolean {
+  if (!signature || !appSecret) {
+    return false;
+  }
 
-import { APP_SECRET } from '../config/metaConfig';
-
-export function verifyPayloadSignature(rawBody: Buffer | string, signature: string, appSecret: string): boolean {
   const expected =
-    'sha256=' + crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex');
-  return expected === signature;
-}
+    'sha256=' +
+    crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex');
 
-export function createSignatureVerifier(appSecret: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const signature = req.headers['x-hub-signature-256'] as string | undefined;
-    if (!signature) return res.status(401).send('Missing signature');
+  // Use timing-safe comparison to prevent timing attacks
+  if (expected.length !== signature.length) {
+    return false;
+  }
 
-    const valid = verifyPayloadSignature((req as any).rawBody, signature, appSecret);
-    if (!valid) {
-      return res.status(401).send('Invalid signature');
-    }
-    next();
-  };
-}
-
-export function verifySignature(req: Request, res: Response, next: NextFunction) {
-  return createSignatureVerifier(APP_SECRET)(req, res, next);
+  return crypto.timingSafeEqual(
+    Buffer.from(expected, 'utf8'),
+    Buffer.from(signature, 'utf8'),
+  );
 }

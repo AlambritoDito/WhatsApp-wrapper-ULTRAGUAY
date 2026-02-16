@@ -1,21 +1,44 @@
-import { httpClient } from '../http/httpClient';
-import { TemplateComponents } from '../types/WhatsApp';
+/**
+ * Send template messages via WhatsApp Cloud API.
+ */
 
+import { FetchClient } from '../http/fetchClient.js';
+import type { SendResult, TemplateComponent } from '../types/messages.js';
+import type { MessageResponse } from '../types/responses.js';
+
+/**
+ * Send a pre-approved template message.
+ *
+ * @param fetchClient - The HTTP client instance.
+ * @param to - Recipient phone number.
+ * @param templateName - Name of the approved template.
+ * @param languageCode - Language code (e.g., 'en', 'es').
+ * @param components - Optional template components (header, body, buttons).
+ * @param replyTo - Optional message ID to reply to.
+ */
 export async function sendTemplate(
+  fetchClient: FetchClient,
   to: string,
   templateName: string,
-  templateLanguage: string,
-  components?: TemplateComponents[]
-): Promise<void> {
-  const payload = {
+  languageCode: string,
+  components?: TemplateComponent[],
+  replyTo?: string,
+): Promise<SendResult> {
+  const payload: Record<string, unknown> = {
     messaging_product: 'whatsapp',
     to,
     type: 'template',
     template: {
       name: templateName,
-      language: { code: templateLanguage },
-      components: components || []
-    }
+      language: { code: languageCode },
+      ...(components && components.length > 0 ? { components } : {}),
+    },
   };
-  await httpClient.post('', payload);
+
+  if (replyTo) {
+    payload.context = { message_id: replyTo };
+  }
+
+  const response = await fetchClient.postJson<MessageResponse>('/messages', payload);
+  return { messageId: response.messages[0].id };
 }

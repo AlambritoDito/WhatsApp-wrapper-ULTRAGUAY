@@ -1,279 +1,297 @@
-# whatsapp-wrapper
+# @brito/whatsapp-wrapper-ultra v2
 
+General-purpose TypeScript wrapper for the **WhatsApp Cloud API** (Meta).
 
-**Modular TypeScript wrapper for Meta’s WhatsApp Cloud API**
+Instanciable, zero singletons, zero global state, native `fetch`, fully typed.
 
-[![NPM Version](https://img.shields.io/npm/v/@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay)](https://www.npmjs.com/package/@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY/actions/workflows/ci.yml/badge.svg)](https://github.com/AlambritoDito/WhatsApp-wrapper-ULTRAGUAY/actions)
+## Features
 
-A strongly-typed, lightweight toolkit to:
+- **Instanciable client** — multiple WhatsApp numbers in the same process
+- **Full send support** — text, buttons, lists, images, video, audio, documents, stickers, location, templates, flows, reactions
+- **Full receive support** — parse all message types, status updates, signature verification
+- **Native `fetch`** — no Axios, no dependencies for HTTP
+- **Smart retry** — exponential backoff on 429/5xx, respects `Retry-After`
+- **Media handling** — upload and download media files
+- **Storage adapters** — pluggable storage (disk, S3, or custom)
+- **Testing utilities** — MockClient, test factories, REPL console
+- **TypeScript strict** — no `any`, full type safety, JSDoc on public API
+- **Zero config opinions** — no dotenv, no singletons, no Express requirement
 
-- **Send** messages (text, interactive buttons, templates, images, documents, location)
-- **Receive & parse** inbound webhooks (text, button replies, **location**) 
-- **Secure** your endpoint with HMAC–SHA256 signature verification
-- **Handle** Cloud API errors in a clear, consistent way
+## Quick Start
 
----
+```typescript
+import { WhatsAppClient } from '@brito/whatsapp-wrapper-ultra';
 
-## Table of Contents
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Modular Usage](#modular-usage-new)
-- [Testing Mode](#testing-mode-new)
-- [Quick Start (2 terminals)](#quick-start-2-terminals)
-- [API Reference](#api-reference)
-- [Webhook & Security](#webhook--security)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-- [Folder Structure](#folder-structure)
-- [License](#license)
+const client = new WhatsAppClient({
+  accessToken: process.env.META_TOKEN!,
+  phoneNumberId: process.env.PHONE_NUMBER_ID!,
+  appSecret: process.env.APP_SECRET,
+});
 
----
+// Send messages
+await client.sendText('5211234567890', 'Hello!');
+await client.sendButtons('5211234567890', 'Pick one:', [
+  { id: 'yes', title: 'Yes' },
+  { id: 'no', title: 'No' },
+]);
 
-## Requirements
-- Node.js ≥ 16
-- A Meta developer app with WhatsApp Cloud API enabled
-- One **Phone Number ID**, **Permanent Token**, your app’s **APP_SECRET**
+// Receive messages
+client.on('message:text', async (msg) => {
+  console.log(`${msg.from}: ${msg.text}`);
+  await msg.reply('Got it!');
+  await msg.markRead();
+});
 
----
+client.on('status', (status) => {
+  console.log(`Message ${status.messageId}: ${status.status}`);
+});
+```
 
 ## Installation
+
 ```bash
-npm install
-```
-*(This project is TypeScript-first. Use `npm run build` to compile to JS if needed.)*
-
----
-
-## Configuration
-Create a `.env` at the repo root (copy from `.env.example`) and fill in:
-
-```dotenv
-META_TOKEN=your_permanent_token
-PHONE_NUMBER_ID=your_phone_number_id
-APP_SECRET=your_app_secret               # used to verify POST signatures
-WEBHOOK_SECRET=your_webhook_verify_token # used only for GET subscription
-TEST_PHONE=5213300000000                 # your test number (E.164)
-
-# Development-only helpers (optional)
-# ALLOW_UNSIGNED_TESTS=true  # allow Meta UI "Test" events that might not include a signature
-# DISABLE_SIGNATURE=true     # disable signature verification entirely (debug ONLY)
+npm install @brito/whatsapp-wrapper-ultra
 ```
 
-> **Important:**
-> - **APP_SECRET** (from *Meta → Settings → Basic*) is the HMAC key for validating the `X-Hub-Signature-256` on **POST** `/webhook`.
-> - **WEBHOOK_SECRET** is only the **verify token** used during **GET** subscription.
-
-
----
-
-## Modular Usage (New)
-For lighter bundles, import only what you need:
-```typescript
-import { startWebhookServer } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/webhook';
-import { S3StorageAdapter } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/storage';
-```
-See [MIGRATION.md](./MIGRATION.md) for details.
-
-## Testing Mode (New)
-Test your bot locally with an interactive REPL:
-```typescript
-import { enableMocking, createConsole } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay/testing';
-enableMocking();
-createConsole({ onInput: (text) => processInput(text) }).start();
-```
-
----
-
-## Quick Start (2 terminals)
-
-### Terminal 1 — Public tunnel
-Use Localtunnel (free) to expose your local server:
-```bash
-npx localtunnel --port 3000 --subdomain my-whatsapp-bot
-# → https://my-whatsapp-bot.loca.lt
-```
-In Meta’s dashboard, set **Callback URL** to `https://my-whatsapp-bot.loca.lt/webhook` and **Verify Token** to your `WEBHOOK_SECRET`. Subscribe to the **messages** field.
-
-### Terminal 2 — Start server and send test messages
-```bash
-npx ts-node scripts/quickStart.ts
-```
-This starts the webhook server on port **3000**, sends a text and an interactive message to `TEST_PHONE`, and logs inbound events. When you tap a button in WhatsApp, you should see the webhook body in this terminal and get an automatic reply.
-
-> If you want the Meta UI **Test** button to reach your server even when it’s unsigned, set `ALLOW_UNSIGNED_TESTS=true` temporarily.
-
----
+Requires **Node.js 18+** (for native `fetch`).
 
 ## API Reference
 
-### `sendText(to: string, message: string): Promise<void>`
-Sends a plain text message.
+### Client Configuration
 
-### `sendInteractive(to: string, body: string, buttons: ButtonOption[]): Promise<void>`
-Sends a quick-reply interactive message.
-
-```ts
-interface ButtonOption { id: string; title: string }
+```typescript
+const client = new WhatsAppClient({
+  accessToken: 'xxx',           // Required: Meta access token
+  phoneNumberId: '123',         // Required: WhatsApp phone number ID
+  appSecret: 'yyy',             // Optional: for webhook signature verification
+  webhookVerifyToken: 'zzz',    // Optional: for webhook GET verification
+  apiVersion: 'v20.0',          // Optional: Graph API version (default: v20.0)
+  timeoutMs: 30000,             // Optional: request timeout (default: 30s)
+  retry: {                      // Optional: retry configuration
+    maxRetries: 3,
+    baseDelayMs: 1000,
+    maxDelayMs: 30000,
+  },
+  storage: new DiskStorageAdapter('./media'), // Optional: media storage
+  logger: console,              // Optional: logger (default: silent)
+});
 ```
 
-### `sendTemplate(to: string, templateName: string, templateLanguage: string, components?: TemplateComponents[]): Promise<void>`
-Sends a pre-approved template.
+### Sending Messages
 
-### `sendLocationRequest(to: string, bodyText: string): Promise<void>`
-Sends an **interactive location request**. The user will see a native **Send location** button; upon sharing, you receive a `location` message via webhook.
+All send methods return `{ messageId: string }`.
 
-### `sendLocation(to: string, latitude: number, longitude: number, name?: string, address?: string): Promise<void>`
-Sends a **location pin** to the user.
+```typescript
+// Text
+await client.sendText(to, 'Hello!', { previewUrl: true, replyTo: 'wamid...' });
 
-### `startWebhookServer(
-  port: number,
-  onMessage?: (msg: Incoming) => Promise<void> | void,
-  opts?: { allowUnsignedTests?: boolean }
-): void`
-Starts an Express server, verifies signatures by default, and calls `onMessage` for each inbound event.
+// Interactive buttons (max 3)
+await client.sendButtons(to, 'Choose:', [
+  { id: 'opt_1', title: 'Option 1' },
+  { id: 'opt_2', title: 'Option 2' },
+], { header: 'Title', footer: 'Footer' });
 
-```ts
-// Returned by parseIncoming and delivered to onMessage
-export type Incoming =
-  | { from: string; type: 'text';     payload: string }
-  | { from: string; type: 'button';   payload: string }
-  | { from: string; type: 'location'; payload: {
-      latitude: number; longitude: number; name?: string; address?: string; url?: string;
-    }};
-```
-
-### `parseIncoming(body: any): Incoming`
-Normalizes the WhatsApp payload. Supports `interactive.button_reply`, `interactive.list_reply`, **`location`**, and free text.
-
----
-
-## Webhook & Security
-- **GET** `/webhook` → verifies **WEBHOOK_SECRET** via `hub.verify_token`.
-- **POST** `/webhook` → verifies **APP_SECRET** HMAC against `X-Hub-Signature-256` using the **raw** request body.
-- For debugging Meta’s **Test** button (which may be unsigned), pass `{ allowUnsignedTests: true }` to `startWebhookServer` or set `ALLOW_UNSIGNED_TESTS=true`.
-
----
-
-## Examples
-
-### Ask the user for their location and handle the reply
-```ts
-import { startWebhookServer } from '@alan/whatsapp-wrapper';
-import { sendText } from '@alan/whatsapp-wrapper';
-import { sendInteractive } from '@alan/whatsapp-wrapper';
-import { sendLocationRequest } from '@alan/whatsapp-wrapper';
-
-startWebhookServer(3000, async ({ from, type, payload }) => {
-  if (type === 'button' && payload === 'request_location') {
-    await sendLocationRequest(from, 'Please share your location 📍');
-  }
-  if (type === 'location') {
-    const { latitude, longitude, name, address } = payload;
-    await sendText(from, `✅ Location received:\nlat: ${latitude}\nlng: ${longitude}\n${name ?? ''}\n${address ?? ''}`);
-  }
+// Interactive list
+await client.sendList(to, {
+  body: 'Select an item:',
+  buttonText: 'View Options',
+  sections: [{
+    title: 'Category',
+    rows: [
+      { id: 'item_1', title: 'Item 1', description: 'Description' },
+    ],
+  }],
 });
 
-// somewhere in your flow
-await sendInteractive(process.env.TEST_PHONE!, 'What would you like to do?', [
-  { id: 'request_location', title: 'Share my location' },
+// Media (by URL or uploaded media ID)
+await client.sendImage(to, { url: 'https://...' }, 'Caption');
+await client.sendVideo(to, { id: 'media-id' }, 'Caption');
+await client.sendAudio(to, { url: 'https://...' });
+await client.sendDocument(to, { url: 'https://...' }, { filename: 'report.pdf', caption: 'Q4' });
+await client.sendSticker(to, { url: 'https://...' });
+
+// Location
+await client.sendLocation(to, { latitude: 20.67, longitude: -103.35, name: 'Office' });
+await client.requestLocation(to, 'Share your location');
+
+// Templates
+await client.sendTemplate(to, 'hello_world', 'en', [
+  { type: 'body', parameters: [{ type: 'text', text: 'John' }] },
 ]);
+
+// Reactions
+await client.sendReaction(to, messageId, '👍');
+await client.removeReaction(to, messageId);
+
+// Mark as read
+await client.markAsRead(messageId);
+
+// Flows
+await client.sendFlow(to, {
+  body: 'Complete the form',
+  flowId: 'flow-123',
+  flowToken: 'token',
+  ctaText: 'Start',
+});
 ```
 
-### Send a location to the user
-```ts
-import { sendLocation } from '@alan/whatsapp-wrapper';
+### Receiving Messages
 
-await sendLocation(process.env.TEST_PHONE!, 20.6736, -103.344, 'Our office', 'GDL, MX');
+#### Event-based (recommended)
+
+```typescript
+client.on('message', (msg) => { /* any message */ });
+client.on('message:text', (msg) => { /* text only */ });
+client.on('message:image', (msg) => { /* image only */ });
+client.on('message:button_reply', (msg) => { /* button clicks */ });
+client.on('message:list_reply', (msg) => { /* list selections */ });
+client.on('message:reaction', (msg) => { /* reactions */ });
+client.on('status', (event) => { /* delivery/read/failed */ });
+client.on('error', (err) => { /* processing errors */ });
+
+// Process webhook payloads
+client.processWebhook(req.body);
 ```
 
-### Receive & Save Images
+#### Message helpers
 
-```ts
-import { WhatsappWrapper, DiskStorageAdapter, S3StorageAdapter } from '@alan/whatsapp-wrapper';
+Every incoming message has convenience methods:
 
-const wa = new WhatsappWrapper({
-  accessToken: process.env.WABA_TOKEN!,
-  appSecret: process.env.APP_SECRET!,
-  storage: new DiskStorageAdapter('./uploads'),
+```typescript
+client.on('message:text', async (msg) => {
+  await msg.reply('Thanks!');         // sends text back to sender
+  await msg.react('👍');              // reacts to the message
+  await msg.markRead();               // blue checkmarks
+  const buf = await msg.downloadMedia(); // for media messages
 });
-
-wa.onImage(async (ctx) => {
-  console.log('Image from', ctx.from, 'id', ctx.image.mediaId);
-  const saved = await ctx.save();
-  console.log('Saved at', saved.location);
-});
-
-// Express
-app.post('/webhook', async (req: any, res) => {
-  await wa.handleWebhook({ headers: req.headers, rawBody: req.rawBody, json: req.body });
-  res.sendStatus(200);
-});
-
-// Fastify
-fastify.post('/webhook', async (req, res) => {
-  await wa.handleWebhook({ headers: req.headers as any, rawBody: (req as any).rawBody, json: req.body });
-  res.status(200).send();
-});
-
-// S3 adapter
-const s3Adapter = new S3StorageAdapter({ bucket: 'my-bucket', prefix: 'wa/' });
-const waS3 = new WhatsappWrapper({
-  accessToken: process.env.WABA_TOKEN!,
-  appSecret: process.env.APP_SECRET!,
-  storage: s3Adapter,
-});
-
 ```
 
-> Security tip: Always validate the `X-Hub-Signature-256` header before trusting the payload. If signature verification fails, do not download or persist the media.
+#### Framework-agnostic parsing
 
+```typescript
+import { parseWebhookBody, verifyPayloadSignature } from '@brito/whatsapp-wrapper-ultra';
 
----
+// Verify signature
+const isValid = verifyPayloadSignature(rawBody, signature, appSecret);
 
-## Troubleshooting
-- **No logs when tapping buttons**
-  - Ensure the tunnel URL is exactly `https://<subdomain>.loca.lt/webhook` in Meta.
-  - Confirm subscription to **messages**.
-  - Check that `APP_SECRET` is set and matches your app.
-  - Temporarily set `ALLOW_UNSIGNED_TESTS=true` for the Meta UI **Test** button.
-
-- **EADDRINUSE / port already in use**
-  - Only one server should listen on `:3000`. Kill old processes or run `npx kill-port 3000`.
-
-- **200 OK but message doesn’t arrive**
-  - Free-text messages require an open 24h session. Use a **template** outside the session.
-
-- **Location doesn’t show**
-  - Make sure you’re using **WhatsApp on mobile**, not WhatsApp Web, when sharing a location.
-
-- **Validate connectivity**
-  - `GET /health` locally and via your tunnel.
-
----
-
-## Folder Structure
-```
-whatsapp-wrapper/
-├── README.md
-├── package.json
-├── tsconfig.json
-├── .env.example
-├── src/
-│   ├── config/       # env & constants
-│   ├── http/         # Axios client & retry interceptor
-│   ├── types/        # TypeScript types
-│   ├── send/         # sendText, sendInteractive, sendTemplate, sendLocation, sendLocationRequest
-│   ├── receive/      # webhookServer, parseIncoming (text/button/location)
-│   ├── utils/        # verifySignature (APP_SECRET), formatPhone, logger
-│   └── errors/       # WhatsAppError
-├── scripts/          # quickStart, server debug, tryShareLocation
-└── tests/            # Jest unit tests
+// Parse without a client
+const { messages, statuses } = parseWebhookBody(body);
 ```
 
----
+#### Express middleware
+
+```typescript
+const middleware = client.webhookMiddleware();
+app.get('/webhook', middleware.handleGet);
+app.post('/webhook', middleware.handlePost);
+// or
+middleware.mount(app, '/webhook');
+```
+
+### Media
+
+```typescript
+// Download
+const buffer = await client.downloadMedia(mediaId);
+
+// Upload
+const mediaId = await client.uploadMedia(buffer, 'image/png', 'photo.png');
+
+// Then send using the ID
+await client.sendImage(to, { id: mediaId });
+```
+
+### Storage Adapters
+
+```typescript
+import { DiskStorageAdapter, S3StorageAdapter } from '@brito/whatsapp-wrapper-ultra';
+
+// Disk storage
+const disk = new DiskStorageAdapter('./media');
+
+// S3 storage (requires @aws-sdk/client-s3 as peer dep)
+const s3 = new S3StorageAdapter({
+  bucket: 'my-bucket',
+  prefix: 'whatsapp/',
+  s3: { region: 'us-east-1' },
+});
+
+// Custom storage
+const custom: StorageAdapter = {
+  async save({ data, mimeType, suggestedName }) {
+    // your logic
+    return { location: 'path/to/file' };
+  },
+};
+```
+
+### Testing
+
+```typescript
+import { createTestClient, makeTextWebhook } from '@brito/whatsapp-wrapper-ultra/testing';
+
+const { client, mock } = createTestClient();
+
+// Test your handlers
+client.on('message:text', async (msg) => {
+  await msg.reply('Echo: ' + msg.text);
+});
+
+client.processWebhook(makeTextWebhook('Hello'));
+
+// Inspect what was sent
+expect(mock.messages).toHaveLength(1);
+expect(mock.lastMessage?.body).toMatchObject({
+  type: 'text',
+  text: { body: 'Echo: Hello' },
+});
+
+// Filter recorded messages
+mock.messagesTo('5511999999999');
+mock.messagesOfType('text');
+mock.clear();
+```
+
+Available test webhook factories:
+- `makeTextWebhook(text, from?, messageId?)`
+- `makeImageWebhook(mediaId, mimeType?, from?)`
+- `makeButtonReplyWebhook(buttonId, buttonTitle, from?)`
+- `makeStatusWebhook(messageId, status, recipientId?)`
+
+### Error Handling
+
+```typescript
+import { WhatsAppError } from '@brito/whatsapp-wrapper-ultra';
+
+try {
+  await client.sendText(to, text);
+} catch (err) {
+  if (err instanceof WhatsAppError) {
+    console.log(err.statusCode);  // HTTP status (400, 429, 500, etc.)
+    console.log(err.errorCode);   // Meta error code string
+    console.log(err.details);     // Full API error response
+    console.log(err.retryAfter);  // Seconds (from Retry-After header)
+    console.log(err.isRetryable); // true for 429 and 5xx
+  }
+}
+```
+
+## Project Structure
+
+```
+src/
+├── client/       → WhatsAppClient (main entry point)
+├── send/         → sendText, sendButtons, sendList, sendMedia, etc.
+├── receive/      → parseIncoming, webhookMiddleware, webhookServer
+├── media/        → MediaClient (upload/download)
+├── storage/      → StorageAdapter, DiskStorageAdapter, S3StorageAdapter
+├── http/         → FetchClient (native fetch + retry)
+├── errors/       → WhatsAppError
+├── types/        → All TypeScript interfaces and types
+├── testing/      → MockAdapter, createTestClient, WhatsAppConsole
+└── utils/        → verifySignature, formatPhone, mimeToExt
+```
 
 ## License
-MIT © Alan Pérez Fernández
+
+MIT

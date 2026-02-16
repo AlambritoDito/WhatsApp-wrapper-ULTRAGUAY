@@ -1,42 +1,40 @@
 /**
- * Send WhatsApp Flow messages via the Cloud API.
+ * Send an interactive list message via WhatsApp Cloud API.
+ * Lists support multiple sections with rows (up to 10 rows total).
  */
 
 import { FetchClient } from '../http/fetchClient.js';
-import type { FlowOptions, SendResult } from '../types/messages.js';
+import type { ListMessageOptions, SendResult } from '../types/messages.js';
 import type { MessageResponse } from '../types/responses.js';
 
 /**
- * Send a WhatsApp Flow interactive message.
+ * Send an interactive list message with sections.
  *
  * @param fetchClient - The HTTP client instance.
  * @param to - Recipient phone number.
- * @param options - Flow configuration.
- * @param replyTo - Optional message ID to reply to.
+ * @param options - List message configuration.
+ * @param extra - Optional reply context.
+ * @returns The wamid of the sent message.
  */
-export async function sendFlow(
+export async function sendList(
   fetchClient: FetchClient,
   to: string,
-  options: FlowOptions,
-  replyTo?: string,
+  options: ListMessageOptions,
+  extra?: { replyTo?: string },
 ): Promise<SendResult> {
   const interactive: Record<string, unknown> = {
-    type: 'flow',
+    type: 'list',
     body: { text: options.body },
     action: {
-      name: 'flow',
-      parameters: {
-        mode: options.mode ?? 'published',
-        flow_message_version: '3',
-        flow_token: options.flowToken,
-        flow_id: options.flowId,
-        flow_cta: options.ctaText,
-        flow_action: 'navigate',
-        flow_action_payload: {
-          screen: options.screen ?? 'WELCOME_SCREEN',
-          data: options.data,
-        },
-      },
+      button: options.buttonText,
+      sections: options.sections.map((section) => ({
+        title: section.title,
+        rows: section.rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+        })),
+      })),
     },
   };
 
@@ -54,8 +52,8 @@ export async function sendFlow(
     interactive,
   };
 
-  if (replyTo) {
-    payload.context = { message_id: replyTo };
+  if (extra?.replyTo) {
+    payload.context = { message_id: extra.replyTo };
   }
 
   const response = await fetchClient.postJson<MessageResponse>('/messages', payload);
