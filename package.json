@@ -1,6 +1,6 @@
 {
   "name": "@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0",
   "description": "Instanciable, type‑safe TypeScript wrapper for the WhatsApp Cloud API (Meta). Zero business logic — pure protocol wrapper.",
   "keywords": [
     "whatsapp",

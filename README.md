@@ -3,8 +3,31 @@
 > Instanciable, type‑safe TypeScript wrapper for the **WhatsApp Cloud API** (Meta).  
 > Zero business logic — pure protocol wrapper.
 
+[![npm version](https://img.shields.io/npm/v/@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay.svg)](https://www.npmjs.com/package/@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+
+---
+
+## 🆕 What's New in v2
+
+v2 is a **complete rewrite** from the ground up. If you're upgrading from v1, see [MIGRATION.md](MIGRATION.md) for a step‑by‑step guide.
+
+| Feature | v1 | v2 |
+|---------|----|----|
+| Architecture | Global singleton + standalone functions | **Instanciable `WhatsAppClient`** class |
+| Send methods | `sendText`, `sendInteractive`, `sendTemplate` | **13 send methods** (text, image, video, audio, doc, sticker, location, template, reaction, contacts, interactive, location‑request) |
+| Return values | `void` | **`{ wamid }` on every send** |
+| Inbound parsing | 5 message types | **15 message types** |
+| Webhook | `startWebhookServer` (opinionated) | **Event system** (`client.on(...)`) + optional Express middleware |
+| HTTP | `axios` | **Native `fetch`** (zero deps) |
+| Retry | Basic | **Exponential backoff** with jitter, configurable |
+| Media | `MediaClient` (download only) | **Full CRUD** (upload, download, get URL, delete, download+save) |
+| Testing | `enableMocking` interceptors | **`MockWhatsAppClient`** + **`createMockWebhookPayload`** |
+| Config | `.env` via `dotenv` | **Constructor config** (multi‑client friendly) |
+| Dependencies | axios, dotenv, express, jimp, jsqr… | **Zero runtime deps** |
+
+---
 
 ## Highlights
 
@@ -367,16 +390,99 @@ const statusPayload = createMockWebhookPayload('status', { status: 'delivered' }
 | `./storage` | `DiskStorageAdapter`, `S3StorageAdapter`, `StorageAdapter` interface |
 | `./testing` | `MockWhatsAppClient`, `createMockWebhookPayload` |
 
+## TypeScript Types
+
+Every type is exported for consumers — no need to re‑declare anything:
+
+```typescript
+import type {
+  // Config
+  WhatsAppClientConfig,
+  HttpOptions,
+  // Send
+  SendResponse,
+  CommonSendOptions,
+  SendTextOptions,
+  MediaRef,
+  SendImageOptions,
+  SendVideoOptions,
+  SendAudioOptions,
+  SendDocumentOptions,
+  SendStickerOptions,
+  Location,
+  SendTemplateOptions,
+  TemplateComponent,
+  TemplateParameter,
+  // Contacts
+  Contact,
+  ContactName,
+  ContactPhone,
+  ContactEmail,
+  ContactUrl,
+  ContactAddress,
+  ContactOrg,
+  // Interactive
+  Interactive,
+  InteractiveButtons,
+  InteractiveList,
+  InteractiveSection,
+  InteractiveRow,
+  InteractiveFlow,
+  InteractiveCTA,
+  InteractiveLocationRequest,
+  InteractiveHeader,
+  SendInteractiveOptions,
+  // Media
+  UploadMediaResult,
+  MediaUrlResult,
+  // Inbound
+  InboundMessage,
+  InboundMessageType,
+  InboundText,
+  InboundImage,
+  InboundVideo,
+  InboundAudio,
+  InboundDocument,
+  InboundSticker,
+  InboundLocation,
+  InboundContacts,
+  InboundInteractiveReply,
+  InboundReaction,
+  InboundFlowReply,
+  InboundOrder,
+  InboundSystem,
+  InboundReferral,
+  InboundUnsupported,
+  // Status
+  StatusUpdate,
+  // Webhook
+  WebhookPayload,
+  // Events
+  WhatsAppEvents,
+  // Storage
+  StorageAdapter,
+} from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay';
+```
+
+### Error Classes
+
+```typescript
+import { WhatsAppError, StorageNotConfiguredError } from '@whatsapp-wrapper-ultraguay/whatsapp-wrapper-ultraguay';
+
+try {
+  await client.sendText('123', 'Hello');
+} catch (err) {
+  if (err instanceof WhatsAppError) {
+    console.log(err.statusCode);  // HTTP status code
+    console.log(err.details);     // API error body
+    console.log(err.retryAfter);  // seconds (if 429)
+  }
+}
+```
+
 ## Migration from v1
 
-See [MIGRATION.md](MIGRATION.md) for a detailed guide.
-
-**Key changes:**
-- `new WhatsAppClient(config)` replaces global config via `.env`
-- All send methods return `{ wamid: string }` (were `void`)
-- Native `fetch` replaces `axios`
-- `parseIncoming` now returns all message types (was only text/image/button/location/flow)
-- Removed: `dotenv`, `axios`, `express`, `jimp`, `jsqr`, `qrcode-reader` dependencies
+See [MIGRATION.md](MIGRATION.md) for a comprehensive step‑by‑step guide with before/after code examples for every breaking change.
 
 ## Requirements
 
